@@ -5,8 +5,6 @@ node_modules
 out
 dist
 *.tgz
-*.Zone.Identifier
-*:Zone.Identifier
 
 # code coverage
 coverage
@@ -35,5 +33,21 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Finder (MacOS) folder config
 .DS_Store
 .studio/
-.github/
 .vscode/
+
+.github/skills/prd-template
+.github/skills/process-depth
+.github/skills/questioning
+.github/skills/sds-template
+.github/skills/sequential-task-groups
+.github/skills/studio-cli
+.github/skills/task-template
+.github/skills/workflow-catalog
+
+.github/agents/central.agent.md
+.github/agents/studio-architect.agent.md
+.github/agents/studio-designer.agent.md
+.github/agents/studio-executor.agent.md
+.github/agents/studio-planner.agent.md
+.github/agents/studio-product.agent.md
+.github/agents/studio-reviewer.agent.md

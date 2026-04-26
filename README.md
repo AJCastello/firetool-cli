@@ -6,7 +6,7 @@
 [![Local only](https://img.shields.io/badge/safety-local--only-16a34a)](#local-only-by-design)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-![Firetool CLI](./firetool-cli.png)
+![Firetool CLI](https://raw.githubusercontent.com/AJCastello/firetool-cli/main/firetool-cli.png)
 
 **Firetool CLI is an agent-first command line tool for controlling Firebase emulators without ever falling back to real Firebase resources.**
 
@@ -71,6 +71,12 @@ firetool doctor
 firetool doctor --json
 ```
 
+Published packages include only the built CLI bundle plus the public package files:
+
+- `dist/`
+- `README.md`
+- `LICENSE`
+
 ## Local development
 
 This repository uses Bun.
@@ -88,6 +94,10 @@ bun run dev -- doctor --json
 ```
 
 Build output is generated under `dist/` and is intentionally ignored by Git.
+
+## Contributing and security
+
+If you want to contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md). For security reports, use [SECURITY.md](SECURITY.md) instead of filing a public issue.
 
 ## Quick start
 
@@ -214,6 +224,18 @@ Known error categories use distinct exit codes:
 | `CONFIRMATION_REQUIRED` | A destructive operation needs confirmation or `--force`. |
 | `RULE_DENIED` | Local rules denied the requested operation. |
 | `AMBIGUOUS_TARGET` | Firetool cannot determine the local target safely. |
+
+## Releases and publishing
+
+Firetool uses a tag-first release cycle:
+
+1. update [`CHANGELOG.md`](CHANGELOG.md);
+2. bump `package.json` to the intended version;
+3. run `bun run release:check`;
+4. create and push a `v<version>` Git tag;
+5. publish to npm manually or let the release workflow publish when `NPM_TOKEN` is configured.
+
+The npm package ships only the built CLI bundle and essential package files, not the full repository source tree.
 
 ## License
 
