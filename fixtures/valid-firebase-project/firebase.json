@@ -1,0 +1,10 @@
+{
+  "emulators": {
+    "auth": { "port": 9099, "host": "localhost" },
+    "firestore": { "port": 8080, "host": "localhost" },
+    "database": { "port": 9000, "host": "localhost" },
+    "storage": { "port": 9199, "host": "localhost" },
+    "functions": { "port": 5001, "host": "localhost" },
+    "pubsub": { "port": 8085, "host": "localhost" }
+  }
+}

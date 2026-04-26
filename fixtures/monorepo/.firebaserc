@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "monorepo-project-a",
+    "staging": "monorepo-project-b"
+  }
+}

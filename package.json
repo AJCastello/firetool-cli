@@ -1,0 +1,54 @@
+{
+  "name": "firetool-cli",
+  "version": "0.1.0",
+  "description": "Agent-first, local-only CLI for controlling Firebase emulators safely from terminals and automation.",
+  "type": "module",
+  "license": "MIT",
+  "author": "AJCastello",
+  "keywords": [
+    "firebase",
+    "firebase-emulator",
+    "cli",
+    "developer-tools",
+    "testing",
+    "automation",
+    "agents",
+    "typescript"
+  ],
+  "bin": {
+    "firetool": "./dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "bun@1.3.9",
+  "scripts": {
+    "dev": "bun run src/cli/index.ts",
+    "build": "bun build src/cli/index.ts --outfile dist/cli/index.js --target node",
+    "prepack": "bun run build",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "check": "bun run typecheck && bun test",
+    "check-types": "tsc --noEmit",
+    "validate:scope": "bun run typecheck && bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@trpc/server": "^11.16.0",
+    "commander": "^14.0.3",
+    "zod": "^4.3.6"
+  }
+}
