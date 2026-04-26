@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
 import type { TEmulatorStatus, TCommandTarget } from '../../src/shared/types.ts'
 import {
   isRemoteHost,
@@ -8,6 +8,8 @@ import {
   assertConfirmed,
   guardSensitiveOperation,
 } from '../../src/policy/local-only.ts'
+
+const ALLOWLIST_ENV = 'FIRETOOL_ALLOWED_EMULATOR_HOSTS'
 
 // Helpers to build emulator status fixtures
 function makeStatus(
@@ -199,5 +201,237 @@ describe('guardSensitiveOperation', () => {
     const statuses = [makeStatus('firestore')]
     const err = guardSensitiveOperation('firestore', explicitTarget, statuses, 'project-a', ['default', 'staging'])
     expect(err).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Edge-case: extended isRemoteHost coverage
+// ---------------------------------------------------------------------------
+
+describe('isRemoteHost — edge cases', () => {
+  describe('normalizable local hosts', () => {
+    it('returns false for localhost. (trailing dot)', () => {
+      expect(isRemoteHost('localhost.')).toBe(false)
+    })
+
+    it('returns false for [::1] (bracketed IPv6)', () => {
+      expect(isRemoteHost('[::1]')).toBe(false)
+    })
+
+    it('returns false for [::1]:9099 (bracketed IPv6 with port)', () => {
+      expect(isRemoteHost('[::1]:9099')).toBe(false)
+    })
+
+    it('returns false for 0:0:0:0:0:0:0:1 (expanded IPv6 loopback)', () => {
+      expect(isRemoteHost('0:0:0:0:0:0:0:1')).toBe(false)
+    })
+
+    it('returns false for ::ffff:127.0.0.1 (IPv4-mapped loopback)', () => {
+      expect(isRemoteHost('::ffff:127.0.0.1')).toBe(false)
+    })
+
+    it('returns false for :: (bind-all IPv6)', () => {
+      expect(isRemoteHost('::')).toBe(false)
+    })
+
+    it('returns false for 127.0.0.1:9099 (loopback with port)', () => {
+      expect(isRemoteHost('127.0.0.1:9099')).toBe(false)
+    })
+
+    it('returns false for http://localhost (accidental protocol prefix)', () => {
+      expect(isRemoteHost('http://localhost')).toBe(false)
+    })
+  })
+
+  describe('public Firebase/Google hosts remain blocked', () => {
+    it('blocks firebaseio.com', () => {
+      expect(isRemoteHost('firebaseio.com')).toBe(true)
+    })
+
+    it('blocks project.firebaseio.com', () => {
+      expect(isRemoteHost('my-project.firebaseio.com')).toBe(true)
+    })
+
+    it('blocks firebaseapp.com', () => {
+      expect(isRemoteHost('my-project.firebaseapp.com')).toBe(true)
+    })
+
+    it('blocks googleapis.com', () => {
+      expect(isRemoteHost('firebase.googleapis.com')).toBe(true)
+    })
+
+    it('blocks identitytoolkit.googleapis.com', () => {
+      expect(isRemoteHost('identitytoolkit.googleapis.com')).toBe(true)
+    })
+  })
+
+  describe('private LAN IPs remain blocked by default', () => {
+    it('blocks 10.0.0.1', () => {
+      expect(isRemoteHost('10.0.0.1')).toBe(true)
+    })
+
+    it('blocks 172.16.0.1', () => {
+      expect(isRemoteHost('172.16.0.1')).toBe(true)
+    })
+
+    it('blocks 192.168.1.100', () => {
+      expect(isRemoteHost('192.168.1.100')).toBe(true)
+    })
+  })
+
+  describe('allowlisted hosts via FIRETOOL_ALLOWED_EMULATOR_HOSTS', () => {
+    let original: string | undefined
+
+    beforeAll(() => {
+      original = process.env[ALLOWLIST_ENV]
+    })
+
+    afterAll(() => {
+      if (original === undefined) {
+        delete process.env[ALLOWLIST_ENV]
+      } else {
+        process.env[ALLOWLIST_ENV] = original
+      }
+    })
+
+    it('returns false for host.docker.internal when allowlisted', () => {
+      process.env[ALLOWLIST_ENV] = 'host.docker.internal'
+      expect(isRemoteHost('host.docker.internal')).toBe(false)
+    })
+
+    it('returns true for host.docker.internal when NOT allowlisted (defaults blocked)', () => {
+      delete process.env[ALLOWLIST_ENV]
+      expect(isRemoteHost('host.docker.internal')).toBe(true)
+    })
+
+    it('returns false for a docker-compose service name when allowlisted', () => {
+      process.env[ALLOWLIST_ENV] = 'firebase-emulator'
+      expect(isRemoteHost('firebase-emulator')).toBe(false)
+    })
+
+    it('returns false for a WSL host alias when allowlisted', () => {
+      process.env[ALLOWLIST_ENV] = 'wsl-host'
+      expect(isRemoteHost('wsl-host')).toBe(false)
+    })
+
+    it('does not accept non-listed custom hostnames even when other hosts are allowlisted', () => {
+      process.env[ALLOWLIST_ENV] = 'host.docker.internal'
+      expect(isRemoteHost('other-docker-host')).toBe(true)
+    })
+
+    it('allowlisting a private LAN IP permits it (explicit opt-in)', () => {
+      process.env[ALLOWLIST_ENV] = '192.168.1.100'
+      expect(isRemoteHost('192.168.1.100')).toBe(false)
+    })
+
+    it('allowlist match is exact — partial hostname is not accepted', () => {
+      process.env[ALLOWLIST_ENV] = 'docker.internal'
+      expect(isRemoteHost('host.docker.internal')).toBe(true)
+    })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Edge-case: assertEmulatorRunning with allowlisted hosts
+// ---------------------------------------------------------------------------
+
+describe('assertEmulatorRunning — allowlist integration', () => {
+  let original: string | undefined
+
+  beforeAll(() => {
+    original = process.env[ALLOWLIST_ENV]
+  })
+
+  afterAll(() => {
+    if (original === undefined) {
+      delete process.env[ALLOWLIST_ENV]
+    } else {
+      process.env[ALLOWLIST_ENV] = original
+    }
+  })
+
+  it('allows host.docker.internal when allowlisted', () => {
+    process.env[ALLOWLIST_ENV] = 'host.docker.internal'
+    const statuses = [makeStatus('firestore', { host: 'host.docker.internal' })]
+    expect(assertEmulatorRunning('firestore', statuses)).toBeNull()
+  })
+
+  it('blocks host.docker.internal when NOT allowlisted', () => {
+    delete process.env[ALLOWLIST_ENV]
+    const statuses = [makeStatus('firestore', { host: 'host.docker.internal' })]
+    const err = assertEmulatorRunning('firestore', statuses)
+    expect(err).not.toBeNull()
+    expect(err!.code).toBe('EMULATOR_NOT_RUNNING')
+    expect(err!.message).toContain('not a local address')
+  })
+
+  it('hint mentions FIRETOOL_ALLOWED_EMULATOR_HOSTS for non-local host errors', () => {
+    delete process.env[ALLOWLIST_ENV]
+    const statuses = [makeStatus('firestore', { host: 'host.docker.internal' })]
+    const err = assertEmulatorRunning('firestore', statuses)
+    expect(err!.hint).toContain('FIRETOOL_ALLOWED_EMULATOR_HOSTS')
+  })
+
+  it('allows a private LAN IP when explicitly allowlisted', () => {
+    process.env[ALLOWLIST_ENV] = '192.168.1.100'
+    const statuses = [makeStatus('firestore', { host: '192.168.1.100' })]
+    expect(assertEmulatorRunning('firestore', statuses)).toBeNull()
+  })
+
+  it('blocks a private LAN IP when NOT allowlisted', () => {
+    delete process.env[ALLOWLIST_ENV]
+    const statuses = [makeStatus('firestore', { host: '192.168.1.100' })]
+    const err = assertEmulatorRunning('firestore', statuses)
+    expect(err).not.toBeNull()
+    expect(err!.code).toBe('EMULATOR_NOT_RUNNING')
+  })
+
+  it('allows multiple allowlisted hosts (comma-separated)', () => {
+    process.env[ALLOWLIST_ENV] = 'host.docker.internal,firebase-emulator'
+    const firestoreStatuses = [makeStatus('firestore', { host: 'host.docker.internal' })]
+    const authStatuses = [makeStatus('auth', { host: 'firebase-emulator' })]
+    expect(assertEmulatorRunning('firestore', firestoreStatuses)).toBeNull()
+    expect(assertEmulatorRunning('auth', authStatuses)).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Edge-case: guardSensitiveOperation with allowlisted hosts
+// ---------------------------------------------------------------------------
+
+describe('guardSensitiveOperation — allowlist integration', () => {
+  const target: TCommandTarget = { service: 'firestore' }
+  let original: string | undefined
+
+  beforeAll(() => {
+    original = process.env[ALLOWLIST_ENV]
+  })
+
+  afterAll(() => {
+    if (original === undefined) {
+      delete process.env[ALLOWLIST_ENV]
+    } else {
+      process.env[ALLOWLIST_ENV] = original
+    }
+  })
+
+  it('clears guard when docker host is allowlisted', () => {
+    process.env[ALLOWLIST_ENV] = 'host.docker.internal'
+    const statuses = [makeStatus('firestore', { host: 'host.docker.internal' })]
+    expect(guardSensitiveOperation('firestore', target, statuses, undefined)).toBeNull()
+  })
+
+  it('blocks guard when docker host is NOT allowlisted', () => {
+    delete process.env[ALLOWLIST_ENV]
+    const statuses = [makeStatus('firestore', { host: 'host.docker.internal' })]
+    const err = guardSensitiveOperation('firestore', target, statuses, undefined)
+    expect(err!.code).toBe('EMULATOR_NOT_RUNNING')
+  })
+
+  it('does not weaken defaults: public Google host is still blocked even when allowlist is set', () => {
+    process.env[ALLOWLIST_ENV] = 'host.docker.internal'
+    const statuses = [makeStatus('firestore', { host: 'firestore.googleapis.com' })]
+    const err = guardSensitiveOperation('firestore', target, statuses, undefined)
+    expect(err!.code).toBe('EMULATOR_NOT_RUNNING')
   })
 })

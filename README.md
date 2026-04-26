@@ -174,6 +174,18 @@ Firetool is intentionally scoped to local Firebase emulator workflows. It discov
 
 Before sensitive operations, it checks that the target service is configured, running, local, and unambiguous. Non-local hosts are blocked instead of being treated as valid targets.
 
+Accepted by default: `localhost`, the full `127.0.0.0/8` loopback range, `0.0.0.0` (commonly used by Firebase emulators and WSL setups), IPv6 loopback (`::1`, expanded forms, `::ffff:127.x.x.x`), and custom hostnames whose DNS resolves exclusively to loopback addresses.
+
+For Docker, devcontainer, and WSL topologies where the emulator is reachable via a non-loopback hostname (e.g. `host.docker.internal`), add that hostname to the explicit allowlist:
+
+```bash
+export FIRETOOL_ALLOWED_EMULATOR_HOSTS=host.docker.internal,firebase-emulator
+```
+
+Private LAN IPs (`192.168.x.x`, `10.x.x.x`, `172.16–31.x.x`) are blocked by default because they may represent another machine, a shared environment, or a container Firetool should not target without an explicit decision. Add a specific IP to the allowlist if you genuinely run emulators there.
+
+See [docs/host-strategy.md](docs/host-strategy.md) for the full explanation of the classification model, all supported topology scenarios, and the Firestore admin vs rules-check distinction.
+
 ## JSON output and exit codes
 
 Use `--json` when integrating with agents, scripts, or CI:

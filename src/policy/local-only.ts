@@ -1,14 +1,18 @@
 import type { TEmulatorStatus, TCommandTarget, TFiretoolError } from '../shared/types.ts'
-
-/** Hosts that are considered local emulator endpoints. */
-const LOCAL_HOST_PATTERN = /^(localhost|0\.0\.0\.0|127\.\d+\.\d+\.\d+|::1)$/
+import { normalizeHost, classifyHostSync, readAllowlist } from './host-classification.ts'
 
 /**
- * Returns true when `host` resolves to a non-local address.
- * Firebase real addresses match any non-loopback hostname.
+ * Returns true when `host` is not a permitted local emulator address.
+ *
+ * Delegates to the flexible host classification module. Reads the explicit
+ * allowlist from FIRETOOL_ALLOWED_EMULATOR_HOSTS on every call so runtime
+ * changes to the environment variable are respected without restart.
  */
 export function isRemoteHost(host: string): boolean {
-  return !LOCAL_HOST_PATTERN.test(host)
+  const normalized = normalizeHost(host)
+  const allowlist = readAllowlist()
+  const category = classifyHostSync(normalized, allowlist)
+  return category === 'blocked-remote'
 }
 
 /**
@@ -51,7 +55,7 @@ export function assertEmulatorRunning(
     return {
       code: 'EMULATOR_NOT_RUNNING',
       message: `The ${service} emulator host "${status.host}" is not a local address. firetool only operates against local emulators.`,
-      hint: 'Set the emulator host to "localhost", "127.0.0.1", or "0.0.0.0" and ensure the emulator is running locally.',
+      hint: 'Set the emulator host to a local address (e.g. "localhost", "127.0.0.1", "0.0.0.0", or "::1"). For Docker/WSL hosts, set FIRETOOL_ALLOWED_EMULATOR_HOSTS=<hostname>.',
     }
   }
 
