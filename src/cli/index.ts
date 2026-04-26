@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { Command } from 'commander'
 import { createCaller } from '../server/caller.ts'
 import { formatResult } from './output.ts'
