@@ -35,6 +35,10 @@ describe('isRemoteHost', () => {
     expect(isRemoteHost('127.1.2.3')).toBe(false)
   })
 
+  it('returns false for 0.0.0.0 because Firebase emulators commonly bind to all interfaces locally', () => {
+    expect(isRemoteHost('0.0.0.0')).toBe(false)
+  })
+
   it('returns false for ::1', () => {
     expect(isRemoteHost('::1')).toBe(false)
   })

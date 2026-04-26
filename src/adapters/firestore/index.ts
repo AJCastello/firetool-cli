@@ -99,7 +99,10 @@ export function decodeDocument(doc: FirestoreDocument): Record<string, unknown> 
 type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
 
 function firestoreHeaders(): Record<string, string> {
-  return { 'Content-Type': 'application/json' }
+  return {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer owner',
+  }
 }
 
 async function callFirestore<T>(

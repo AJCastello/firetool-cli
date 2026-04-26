@@ -77,7 +77,8 @@ describe('listUsers', () => {
       return new Response(JSON.stringify({ users: [] }), { status: 200 })
     }
     await listUsers('localhost', 9099, 'my-project', fetcher)
-    expect(capturedUrl).toContain('/projects/my-project/accounts')
+    expect(capturedUrl).toContain('/projects/my-project/accounts:batchGet')
+    expect(capturedUrl).toContain('key=owner')
   })
 })
 
@@ -125,6 +126,7 @@ describe('createUser', () => {
     await createUser('localhost', 9099, 'demo-project', { email: 'x@example.com' }, fetcher)
     expect(method).toBe('POST')
     expect(url).toContain('/projects/demo-project/accounts')
+    expect(url).toContain('key=owner')
     expect(url).not.toContain(':lookup')
   })
 })

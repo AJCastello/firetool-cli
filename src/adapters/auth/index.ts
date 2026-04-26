@@ -99,7 +99,7 @@ export async function listUsers(
   projectId: string,
   fetcher: Fetcher = fetch,
 ): Promise<{ data: AuthUser[] } | { error: TFiretoolError }> {
-  const url = `${adminBase(host, port, projectId)}/accounts?maxResults=500`
+  const url = `${adminBase(host, port, projectId)}/accounts:batchGet?maxResults=500&key=owner`
   const result = await callEmulator<{ users?: AuthUser[] }>(url, { method: 'GET' }, fetcher)
   if ('error' in result) return result
   return { data: result.data.users ?? [] }
@@ -112,7 +112,7 @@ export async function createUser(
   data: CreateUserData,
   fetcher: Fetcher = fetch,
 ): Promise<{ data: AuthUser } | { error: TFiretoolError }> {
-  const url = `${adminBase(host, port, projectId)}/accounts`
+  const url = `${adminBase(host, port, projectId)}/accounts?key=owner`
   const result = await callEmulator<AuthUser>(
     url,
     { method: 'POST', body: JSON.stringify(data) },
@@ -130,7 +130,7 @@ export async function getUser(
   fetcher: Fetcher = fetch,
 ): Promise<{ data: AuthUser } | { error: TFiretoolError }> {
   const isEmail = identifier.includes('@')
-  const url = `${adminBase(host, port, projectId)}/accounts:lookup`
+  const url = `${adminBase(host, port, projectId)}/accounts:lookup?key=owner`
   const body = isEmail ? { email: [identifier] } : { localId: [identifier] }
 
   const result = await callEmulator<{ users?: AuthUser[] }>(
