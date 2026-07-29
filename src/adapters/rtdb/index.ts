@@ -22,8 +22,16 @@ function rtdbUrl(host: string, port: number, projectId: string, path: string): s
   return `${base}${normalized}.json?ns=${encodeURIComponent(projectId)}`
 }
 
+/**
+ * Headers for Realtime Database data operations.
+ *
+ * Data commands are local administration tools, so they talk to the emulator with
+ * admin credentials and are not subject to `database.rules`. The emulator accepts
+ * `Authorization: Bearer owner` for this; the `?auth=owner` query form is rejected.
+ * Use `firetool rules check` to validate what your rules allow for a given identity.
+ */
 function rtdbHeaders(): Record<string, string> {
-  return { 'Content-Type': 'application/json' }
+  return { 'Content-Type': 'application/json', Authorization: 'Bearer owner' }
 }
 
 async function callRtdb<T>(
@@ -53,7 +61,7 @@ async function callRtdb<T>(
         error: {
           code: 'RULE_DENIED',
           message: `Realtime Database Emulator denied the operation: ${errMsg}`,
-          hint: 'Check your database.rules or run with a service account that bypasses rules.',
+          hint: 'Firetool data commands run with emulator admin credentials, so this usually means the emulator rejected them. Confirm you are targeting a local Realtime Database Emulator.',
         },
       }
     }

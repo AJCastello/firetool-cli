@@ -151,11 +151,22 @@ export FIRETOOL_ALLOWED_EMULATOR_HOSTS=192.168.1.42
 
 Any hostname that is not in the safe-defaults list, not in the allowlist, and does not resolve exclusively to loopback addresses is blocked. DNS failures are treated as blocked, not as trusted.
 
-## Firestore data operations vs security rules
+## Data operations vs security rules
 
-Firetool's Firestore data commands (`get`, `set`, `update`, `query`, `seed`, `delete`, etc.) use emulator admin credentials when talking to the Firestore emulator. This means they can read and write data regardless of your app's security rules.
+Firetool's data commands use emulator admin credentials when talking to an emulator. This means they can read and write data regardless of your app's security rules. It applies uniformly to every service that stores data:
+
+| Service | Commands | Credential |
+| --- | --- | --- |
+| Auth | `create-user`, `list-users`, `get-user`, `update-user`, `delete-user`, `clear-users` | `Authorization: Bearer owner` |
+| Firestore | `get`, `set`, `update`, `query`, `list`, `seed`, `import`, `export`, `delete`, `delete-collection`, `clear` | `Authorization: Bearer owner` |
+| Realtime Database | `get`, `set`, `update`, `push`, `query`, `seed`, `import`, `export`, `delete`, `clear` | `Authorization: Bearer owner` |
+| Storage | `list`, `upload`, `download`, `remove`, `clear` | `Authorization: Bearer owner` |
+
+The Realtime Database emulator only accepts the credential as a request header. The `?auth=owner` query-parameter form is rejected with HTTP 401, so Firetool never puts credentials in the URL.
 
 This is intentional. Firetool data commands are **local administration tools**, not application-user simulators. They exist to help you inspect, seed, and reset emulator state reliably — tasks that would be impossible if they were subject to per-user access rules.
+
+The trade-off is deliberate: because data commands bypass rules, a successful `firetool rtdb set` tells you nothing about whether your app could perform the same write. Never read a data command's success as evidence that your rules allow an operation — use `rules check` for that.
 
 If you want to validate what a specific authenticated user can or cannot do under your security rules, use the rules command:
 

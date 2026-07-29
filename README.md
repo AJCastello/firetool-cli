@@ -194,7 +194,13 @@ export FIRETOOL_ALLOWED_EMULATOR_HOSTS=host.docker.internal,firebase-emulator
 
 Private LAN IPs (`192.168.x.x`, `10.x.x.x`, `172.16–31.x.x`) are blocked by default because they may represent another machine, a shared environment, or a container Firetool should not target without an explicit decision. Add a specific IP to the allowlist if you genuinely run emulators there.
 
-See [docs/host-strategy.md](docs/host-strategy.md) for the full explanation of the classification model, all supported topology scenarios, and the Firestore admin vs rules-check distinction.
+See [docs/host-strategy.md](docs/host-strategy.md) for the full explanation of the classification model, all supported topology scenarios, and the admin vs rules-check distinction.
+
+### Data commands bypass security rules
+
+Data commands for Auth, Firestore, Realtime Database, and Storage talk to the emulators with admin credentials, so they work regardless of `firestore.rules`, `database.rules.json`, or `storage.rules`. This keeps seeding and resetting local state predictable.
+
+The consequence is worth stating plainly: a successful data command does **not** mean your app could perform the same operation. To check what your rules actually allow for a given identity, use `firetool rules check`.
 
 ## JSON output and exit codes
 

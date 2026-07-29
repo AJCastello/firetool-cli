@@ -6,8 +6,16 @@ import {
   buildServiceHelp,
 } from '../../src/help/catalog.ts'
 import type { TServiceName } from '../../src/shared/types.ts'
+import { SERVICE_ACTIONS } from '../../src/shared/actions.ts'
 
 const ALL_SERVICES: TServiceName[] = ['auth', 'firestore', 'rtdb', 'storage', 'functions', 'pubsub', 'rules']
+
+/** Extract the `<service> <action>` pair an example command invokes. */
+function parseExample(example: string): { service: string; action: string } | null {
+  const parts = example.split(/\s+/)
+  if (parts[0] !== 'firetool' || parts.length < 3) return null
+  return { service: parts[1]!, action: parts[2]! }
+}
 
 describe('SERVICE_CATALOG', () => {
   it('covers all seven supported services', () => {
@@ -39,6 +47,34 @@ describe('SERVICE_CATALOG', () => {
     expect(SERVICE_CATALOG['functions'].destructive).toBe(false)
     expect(SERVICE_CATALOG['pubsub'].destructive).toBe(false)
     expect(SERVICE_CATALOG['rules'].destructive).toBe(false)
+  })
+})
+
+describe('SERVICE_CATALOG parity with the implemented actions', () => {
+  it('advertises exactly the actions each service implements', () => {
+    for (const service of ALL_SERVICES) {
+      expect([...SERVICE_CATALOG[service].actions]).toEqual([...SERVICE_ACTIONS[service]])
+    }
+  })
+
+  it('never advertises an example that invokes a non-existent action', () => {
+    for (const service of ALL_SERVICES) {
+      for (const example of SERVICE_CATALOG[service].examples) {
+        const parsed = parseExample(example)
+        expect(parsed).not.toBeNull()
+        expect(parsed!.service).toBe(service)
+        expect(SERVICE_ACTIONS[service]).toContain(parsed!.action)
+      }
+    }
+  })
+
+  it('mentions every implemented action in the service description', () => {
+    for (const service of ALL_SERVICES) {
+      const description = SERVICE_CATALOG[service].description
+      for (const action of SERVICE_ACTIONS[service]) {
+        expect(description).toContain(action)
+      }
+    }
   })
 })
 

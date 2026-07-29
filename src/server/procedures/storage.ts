@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { router, publicProcedure } from '../trpc.ts'
 import { ServiceExecuteInputSchema } from '../../shared/schemas.ts'
+import { STORAGE_ACTIONS } from '../../shared/actions.ts'
 import type { TFiretoolResult, TCommandTarget } from '../../shared/types.ts'
 import { discoverContext } from '../../discovery/index.ts'
 import { guardSensitiveOperation, assertConfirmed } from '../../policy/index.ts'
@@ -12,7 +13,7 @@ import {
   clearBucket,
 } from '../../adapters/storage/index.ts'
 
-const KNOWN_ACTIONS = ['list', 'upload', 'download', 'remove', 'clear'] as const
+const KNOWN_ACTIONS = STORAGE_ACTIONS
 
 type StorageAction = (typeof KNOWN_ACTIONS)[number]
 
