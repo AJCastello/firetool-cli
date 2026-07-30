@@ -54,7 +54,7 @@ Firetool turns those tasks into a stable CLI surface designed for both humans an
 
 ## Agent skill
 
-This repository includes a concise skill for AI agents at [`skill/firetool-cli/skill.md`](skill/firetool-cli/skill.md). It tells agents how to discover and use the CLI through `firetool --help`, `firetool help-info`, and JSON-first command execution instead of relying on copied command lists.
+This repository includes a concise skill for AI agents at [`skill/firetool-cli/SKILL.md`](skill/firetool-cli/SKILL.md). It tells agents how to discover and use the CLI through `firetool --help`, `firetool help-info`, and JSON-first command execution instead of relying on copied command lists.
 
 ## Installation
 
