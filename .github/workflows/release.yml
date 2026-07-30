@@ -29,6 +29,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # A tag pointing at a commit whose package.json was never bumped would
+      # otherwise publish the previous version, or fail late with a registry 403.
+      - name: Verify tag matches package version
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          pkg_version="$(node -p "require('./package.json').version")"
+          if [ "$tag_version" != "$pkg_version" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match package.json version ${pkg_version}." >&2
+            echo "Bump the version, commit it, and tag that commit." >&2
+            exit 1
+          fi
+
       - name: Run release checks
         run: bun run release:check
 
@@ -50,8 +62,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - name: Check out repository
@@ -71,6 +81,11 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Trusted publishing exchanges the job's OIDC token for a short-lived
+      # registry credential, so no NPM_TOKEN secret is involved. It requires a
+      # newer npm than the one Node 22 ships with.
+      - name: Upgrade npm for trusted publishing
+        run: npm install -g npm@latest
+
       - name: Publish package to npm
-        if: env.NODE_AUTH_TOKEN != ''
         run: npm publish --provenance --access public
