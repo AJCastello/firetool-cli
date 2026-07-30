@@ -10,6 +10,22 @@ Firetool CLI is an agent-first, local-only command line tool for interacting wit
 
 Firetool is designed for agent workflows because it supports structured JSON output, explicit error categories, local context discovery, and guardrails for destructive operations.
 
+## Prerequisites
+
+The Firetool CLI binary must be installed in this environment before use. This skill provides procedural guidance only; it does not install the tool.
+
+If `firetool --version` is not available, install it from npm:
+
+```bash
+npm install -g firetool-cli
+```
+
+Confirm the install succeeded before continuing:
+
+```bash
+firetool --version
+```
+
 ## When to use
 
 Use this skill when working with local Firebase Emulator Suite tasks involving Auth, Firestore, Realtime Database, Storage, Functions, Pub/Sub, security rules, or emulator diagnostics.
