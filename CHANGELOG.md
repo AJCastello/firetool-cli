@@ -6,6 +6,15 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING: Firetool now requires Node.js 22.12 or newer.** The previous floor of `>=20` covered a runtime that reached end of life in April 2026, and nothing verified it — the test suite runs under Bun, while the published CLI runs under Node. Users on Node 20 or 21 should stay on `0.1.2`, which contains every fix released so far.
+- `commander` upgraded from 14 to 15, which requires Node `>=22.12.0`. Runtime dependencies are not bundled, so a dependency's floor becomes this package's floor on the installing machine; taking this upgrade is what motivated raising `engines`.
+
+### Added
+
+- A `verify-node-floor` CI job that reads the declared minimum from `package.json`, installs exactly that Node version, builds the bundle, and runs the CLI under it. The supported-runtime claim is now exercised on every change instead of asserted.
+
 ## [0.1.2] - 2026-07-30
 
 ### Fixed

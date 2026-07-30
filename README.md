@@ -67,6 +67,8 @@ The skill teaches agents how to drive Firetool, but it does not install the Fire
 
 ## Installation
 
+Firetool requires **Node.js 22.12 or newer**. That floor is not a guess: CI installs exactly that version, builds the CLI, and runs it, so the compatibility claim is exercised on every change rather than asserted.
+
 Install Firetool globally:
 
 ```bash

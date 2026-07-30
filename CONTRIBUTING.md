@@ -25,6 +25,14 @@ Run the CLI from source:
 bun run dev -- doctor --json
 ```
 
+### The supported Node floor
+
+The published CLI runs under Node, not Bun, and `package.json` declares the minimum in `engines.node`. Because the test suite runs under Bun, it says nothing about that floor, so CI has a dedicated `verify-node-floor` job: it reads the declared minimum from `package.json`, installs exactly that Node version, builds the bundle, and runs the CLI under it.
+
+Changing `engines.node` is a breaking change to this package and needs its own release. Never raise it as a side effect of a dependency update — a dependency that demands a newer Node is a product decision, not a routine bump.
+
+Runtime dependencies are **not** bundled: `dist/cli/index.js` imports them, and they resolve on the installing machine. A dependency's own `engines` therefore becomes this package's floor in practice, which is what the `verify-node-floor` job exists to catch.
+
 ## Pull request checklist
 
 Before opening a PR:
