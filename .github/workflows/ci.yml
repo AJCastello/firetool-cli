@@ -35,3 +35,64 @@ jobs:
 
       - name: Inspect published package
         run: npm pack --dry-run
+
+  # The test suite runs under Bun, so it proves nothing about the Node floor this
+  # package advertises in "engines". This job exercises the built CLI under exactly
+  # that version, reading it from package.json so the two cannot drift apart.
+  #
+  # Building and running are deliberately separated. "engines" is a promise about the
+  # runtime that installs the published bundle, not about the toolchain that produces
+  # it — users never run tsdown. The build therefore uses a current Node, and only the
+  # resulting artifact is exercised on the declared minimum.
+  verify-node-floor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Resolve the declared minimum Node version
+        id: floor
+        run: |
+          floor="$(node -p "require('./package.json').engines.node.replace(/^[^0-9]*/, '')")"
+          echo "Declared engines floor: ${floor}"
+          echo "version=${floor}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js for the build
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.9
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build the distributable bundle
+        run: bun run build
+
+      - name: Switch to the declared minimum Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ steps.floor.outputs.version }}
+
+      - name: Exercise the built CLI under the declared minimum
+        run: |
+          set -euo pipefail
+          echo "Running under Node $(node --version)"
+
+          # Loading the bundle at all proves the ESM entrypoint and every runtime
+          # dependency resolved — commander is external, not bundled.
+          actual="$(node dist/cli/index.js --version)"
+          expected="$(node -p "require('./package.json').version")"
+          if [ "$actual" != "$expected" ]; then
+            echo "CLI reported version ${actual}, package.json declares ${expected}." >&2
+            exit 1
+          fi
+
+          node dist/cli/index.js --help > /dev/null
+          node dist/cli/index.js help-info --json > /dev/null
+          echo "The CLI runs under the declared minimum Node version."
