@@ -36,14 +36,37 @@ Before opening a PR:
 
 ## Release workflow
 
-Firetool uses a changelog-plus-tag flow:
+Firetool publishes to npm through **trusted publishing (OIDC)**. The workflow exchanges the job's identity token for a short-lived registry credential, so there is no npm token stored in the repository and nothing to rotate.
 
-1. update `CHANGELOG.md`;
-2. bump the package version in `package.json`;
-3. run `bun run release:check`;
-4. create a `v<version>` tag;
-5. push the branch and tag;
-6. publish with `npm publish --access public` or let the tag workflow publish when `NPM_TOKEN` is configured in GitHub.
+**Do not run `npm publish` by hand.** A manual publish bypasses the pipeline and produces a release without provenance. The tag is the only supported way to publish.
+
+`main` is protected, so the version bump reaches it through a pull request like any other change. The tag is created afterwards, on the merged commit:
+
+1. open a release pull request that updates `CHANGELOG.md` — moving `[Unreleased]` into a dated `[<version>]` section — and bumps `version` in `package.json`;
+2. run `bun run release:check` locally; this is exactly what the release workflow runs;
+3. merge the release pull request;
+4. pull `main`, then create an annotated `v<version>` tag **on the merged commit** and push it.
+
+The workflow refuses to release when the tag does not match `package.json`, so a tag pointing at an un-bumped commit fails early rather than publishing the wrong version.
+
+### Confirm the release actually happened
+
+A green workflow is not proof of publication. Verify against the registry, not against the Actions tab:
+
+```bash
+npm view firetool-cli version
+npm view firetool-cli@<version> dist.attestations
+```
+
+For a release that changes runtime behavior, install the published package and exercise the change against a local emulator before considering the release done.
+
+### If publishing fails
+
+The GitHub release is created only after npm publishing succeeds, so a failed publish leaves nothing half-done. Delete the tag, fix the problem, and re-tag the same version.
+
+### Approvals
+
+`main` requires a passing `validate` check and one approving review. GitHub does not allow approving your own pull request, so a solo maintainer cannot satisfy the review requirement on their own work and merges through the administrator bypass. Contributor pull requests go through normal review and must not be merged this way.
 
 ## Reporting problems
 

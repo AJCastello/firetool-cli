@@ -44,8 +44,11 @@ jobs:
       - name: Run release checks
         run: bun run release:check
 
+  # Runs only after the package is on npm. Publishing first means a failed
+  # publish leaves no GitHub release pointing at a version nobody can install:
+  # delete the tag, fix, and re-tag the same version.
   github-release:
-    needs: validate
+    needs: publish-npm
     runs-on: ubuntu-latest
     permissions:
       contents: write
