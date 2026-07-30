@@ -54,7 +54,7 @@ Firetool turns those tasks into a stable CLI surface designed for both humans an
 
 ## Agent skill
 
-This repository includes a concise skill for AI agents at [`skill/firetool-cli/skill.md`](skill/firetool-cli/skill.md). It tells agents how to discover and use the CLI through `firetool --help`, `firetool help-info`, and JSON-first command execution instead of relying on copied command lists.
+This repository includes a concise skill for AI agents at [`skill/firetool-cli/SKILL.md`](skill/firetool-cli/SKILL.md). It tells agents how to discover and use the CLI through `firetool --help`, `firetool help-info`, and JSON-first command execution instead of relying on copied command lists.
 
 ## Installation
 
@@ -233,15 +233,18 @@ Known error categories use distinct exit codes:
 
 ## Releases and publishing
 
-Firetool uses a tag-first release cycle:
+Firetool uses a tag-first release cycle, published to npm through trusted publishing (OIDC) with build provenance. No npm token is stored in the repository, and releases are never published by hand.
 
-1. update [`CHANGELOG.md`](CHANGELOG.md);
-2. bump `package.json` to the intended version;
-3. run `bun run release:check`;
-4. create and push a `v<version>` Git tag;
-5. publish to npm manually or let the release workflow publish when `NPM_TOKEN` is configured.
+1. open a release pull request updating [`CHANGELOG.md`](CHANGELOG.md) and the version in `package.json`;
+2. run `bun run release:check`;
+3. merge it;
+4. tag the merged commit `v<version>` and push the tag.
+
+The workflow verifies that the tag matches `package.json` before releasing, and creates the GitHub release only after npm publishing succeeds.
 
 The npm package ships only the built CLI bundle and essential package files, not the full repository source tree.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full release procedure, including how to verify a publication actually reached the registry.
 
 ## License
 
