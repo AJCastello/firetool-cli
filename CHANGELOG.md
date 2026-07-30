@@ -6,6 +6,10 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ## [Unreleased]
 
+### Fixed
+
+- `firetool --version` now reports the installed version. It was hardcoded to `0.1.0` in the CLI entrypoint, so `0.1.1` identified itself as `0.1.0` — enough to make an agent or a script conclude that an upgrade had not taken effect. The version is now read from `package.json`, which resolves identically from the source and bundled entrypoints, so the two cannot drift again.
+
 ## [0.1.1] - 2026-07-30
 
 ### Fixed
