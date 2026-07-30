@@ -1,82 +1,98 @@
 import type { TServiceName } from '../shared/types.ts'
 import { EXIT_CODES } from '../errors/catalog.ts'
+import {
+  AUTH_ACTIONS,
+  FIRESTORE_ACTIONS,
+  RTDB_ACTIONS,
+  STORAGE_ACTIONS,
+  FUNCTIONS_ACTIONS,
+  PUBSUB_ACTIONS,
+  RULES_ACTIONS,
+} from '../shared/actions.ts'
 
 export type ServiceInfo = {
   name: TServiceName
   description: string
   destructive: boolean
-  actions: string[]
+  actions: readonly string[]
   examples: string[]
 }
 
 export const SERVICE_CATALOG: Record<TServiceName, ServiceInfo> = {
   auth: {
     name: 'auth',
-    description: 'Manage Firebase Auth emulator users (create, list, get, update, delete, clear)',
+    description:
+      'Manage Firebase Auth emulator users (create-user, list-users, get-user, update-user, delete-user, clear-users)',
     destructive: true,
-    actions: ['create-user', 'get-user', 'list-users', 'update-user', 'delete-user', 'clear'],
+    actions: AUTH_ACTIONS,
     examples: [
       'firetool auth create-user --email user@example.test --password secret --json',
       'firetool auth list-users --json',
       'firetool auth get-user --uid abc123 --json',
       'firetool auth delete-user --uid abc123 --force --json',
-      'firetool auth clear --force --json',
+      'firetool auth clear-users --force --json',
     ],
   },
   firestore: {
     name: 'firestore',
     description:
-      'Manage Firestore emulator data (read, write, seed, import, export, delete, clear)',
+      'Manage Firestore emulator data (get, set, update, query, list, seed, import, export, delete, delete-collection, clear)',
     destructive: true,
-    actions: ['get', 'set', 'update', 'query', 'seed', 'import', 'export', 'delete', 'clear'],
+    actions: FIRESTORE_ACTIONS,
     examples: [
       'firetool firestore get users/123 --json',
+      'firetool firestore list products --json',
       'firetool firestore seed products --file products.seed.json --json',
       'firetool firestore seed products --file products.seed.json --dry-run --json',
-      'firetool firestore clear products --force --json',
+      'firetool firestore delete-collection products --force --json',
+      'firetool firestore clear --force --json',
     ],
   },
   rtdb: {
     name: 'rtdb',
     description:
-      'Manage Realtime Database emulator data (get, set, update, query, remove, seed, import, export)',
+      'Manage Realtime Database emulator data (get, set, update, push, query, seed, import, export, delete, clear)',
     destructive: true,
-    actions: ['get', 'set', 'update', 'query', 'remove', 'seed', 'import', 'export'],
+    actions: RTDB_ACTIONS,
     examples: [
       'firetool rtdb get /users --json',
+      "firetool rtdb set /users/alice --data '{\"name\":\"Alice\"}' --json",
+      "firetool rtdb push /messages --data '{\"text\":\"hi\"}' --json",
       "firetool rtdb seed /products --data '[{\"name\":\"A\"}]' --dry-run --json",
-      'firetool rtdb remove /tmp --force --json',
+      'firetool rtdb delete /tmp --force --json',
     ],
   },
   storage: {
     name: 'storage',
-    description: 'Manage Storage emulator objects (list, upload, download, delete, clear)',
+    description: 'Manage Storage emulator objects (list, upload, download, remove, clear)',
     destructive: true,
-    actions: ['list', 'upload', 'download', 'delete', 'clear'],
+    actions: STORAGE_ACTIONS,
     examples: [
       'firetool storage list --json',
-      'firetool storage upload --file ./image.png --path images/test.png --json',
+      'firetool storage upload images/test.png --file ./image.png --json',
+      'firetool storage download images/test.png --file ./out.png --json',
+      'firetool storage remove images/test.png --force --json',
       'firetool storage clear --force --json',
     ],
   },
   functions: {
     name: 'functions',
-    description: 'Call Firebase Functions emulator endpoints (call, list)',
+    description: 'Call Firebase Functions emulator endpoints (call)',
     destructive: false,
-    actions: ['call', 'list'],
+    actions: FUNCTIONS_ACTIONS,
     examples: [
       "firetool functions call createUserProfile --data '{\"uid\":\"abc\"}' --json",
-      'firetool functions list --json',
+      'firetool functions call http://127.0.0.1:5001/demo/us-central1/health --json',
     ],
   },
   pubsub: {
     name: 'pubsub',
-    description: 'Publish messages to Pub/Sub emulator topics (publish, list-topics)',
+    description: 'Publish messages to Pub/Sub emulator topics (publish)',
     destructive: false,
-    actions: ['publish', 'list-topics'],
+    actions: PUBSUB_ACTIONS,
     examples: [
       "firetool pubsub publish user-created --data '{\"uid\":\"abc\"}' --json",
-      'firetool pubsub list-topics --json',
+      "firetool pubsub publish user-created --data '{\"uid\":\"abc\"}' --attribute source=cli --json",
     ],
   },
   rules: {
@@ -84,10 +100,11 @@ export const SERVICE_CATALOG: Record<TServiceName, ServiceInfo> = {
     description:
       'Check Firebase security rules locally for Firestore and Storage (check)',
     destructive: false,
-    actions: ['check'],
+    actions: RULES_ACTIONS,
     examples: [
-      'firetool rules check firestore products/abc --read --uid user_123 --json',
-      'firetool rules check storage files/test.png --write --json',
+      'firetool rules check --service firestore --path products/abc --intent read --json',
+      'firetool rules check --service firestore --path products/abc --intent write --auth-uid user_123 --json',
+      'firetool rules check --service storage --path files/test.png --intent write --json',
     ],
   },
 }
@@ -179,7 +196,7 @@ export type ServiceHelpData = {
   service: TServiceName
   description: string
   destructive: boolean
-  actions: string[]
+  actions: readonly string[]
   examples: string[]
   agentFlow: string[]
 }

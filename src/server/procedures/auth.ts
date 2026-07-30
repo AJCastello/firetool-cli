@@ -1,6 +1,7 @@
 import { router, publicProcedure } from '../trpc.ts'
 import { z } from 'zod'
 import { AuthExecuteInputSchema } from '../../shared/schemas.ts'
+import { AUTH_ACTIONS } from '../../shared/actions.ts'
 import type { TFiretoolResult, TCommandTarget } from '../../shared/types.ts'
 import { discoverContext } from '../../discovery/index.ts'
 import { guardSensitiveOperation, assertConfirmed } from '../../policy/index.ts'
@@ -14,14 +15,7 @@ import {
 } from '../../adapters/auth/index.ts'
 import type { CreateUserData, UpdateUserData } from '../../adapters/auth/index.ts'
 
-const KNOWN_ACTIONS = [
-  'create-user',
-  'list-users',
-  'get-user',
-  'update-user',
-  'delete-user',
-  'clear-users',
-] as const
+const KNOWN_ACTIONS = AUTH_ACTIONS
 
 type AuthAction = (typeof KNOWN_ACTIONS)[number]
 

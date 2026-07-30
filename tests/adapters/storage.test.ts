@@ -369,3 +369,52 @@ describe('clearBucket', () => {
     if ('error' in res) expect(res.error.code).toBe('RULE_DENIED')
   })
 })
+
+// ---------------------------------------------------------------------------
+// Admin credentials
+// ---------------------------------------------------------------------------
+
+describe('admin credentials', () => {
+  type TestFetcher = (url: string, init?: RequestInit) => Promise<Response>
+
+  /** Captures the headers a single adapter call sends. */
+  function headerCapturingFetcher(sink: { headers?: Headers }) {
+    return async (_url: string, init?: RequestInit): Promise<Response> => {
+      sink.headers = new Headers(init?.headers)
+      return new Response(JSON.stringify({ items: [] }), { status: 200 })
+    }
+  }
+
+  const operations: Array<{ name: string; run: (f: TestFetcher) => Promise<unknown> }> = [
+    { name: 'listObjects', run: (f) => listObjects('localhost', 9199, 'bucket', undefined, f) },
+    {
+      name: 'uploadObject',
+      run: (f) => uploadObject('localhost', 9199, 'bucket', 'a.txt', new Uint8Array([1]), 'text/plain', f),
+    },
+    { name: 'downloadObject', run: (f) => downloadObject('localhost', 9199, 'bucket', 'a.txt', f) },
+    { name: 'removeObject', run: (f) => removeObject('localhost', 9199, 'bucket', 'a.txt', f) },
+  ]
+
+  for (const op of operations) {
+    it(`${op.name} sends the emulator admin credential`, async () => {
+      const sink: { headers?: Headers } = {}
+      await op.run(headerCapturingFetcher(sink))
+      expect(sink.headers?.get('Authorization')).toBe('Bearer owner')
+    })
+  }
+
+  it('uploadObject keeps the caller content type alongside the credential', async () => {
+    const sink: { headers?: Headers } = {}
+    await uploadObject(
+      'localhost',
+      9199,
+      'bucket',
+      'a.png',
+      new Uint8Array([1]),
+      'image/png',
+      headerCapturingFetcher(sink),
+    )
+    expect(sink.headers?.get('Authorization')).toBe('Bearer owner')
+    expect(sink.headers?.get('Content-Type')).toBe('image/png')
+  })
+})

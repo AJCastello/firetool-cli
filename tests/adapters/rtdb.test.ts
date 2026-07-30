@@ -364,3 +364,48 @@ describe('exportData', () => {
     if ('error' in res) expect(res.error.code).toBe('EMULATOR_NOT_RUNNING')
   })
 })
+
+// ---------------------------------------------------------------------------
+// Admin credentials
+// ---------------------------------------------------------------------------
+
+describe('admin credentials', () => {
+  /** Captures the headers a single adapter call sends. */
+  function headerCapturingFetcher(sink: { headers?: Headers }) {
+    return async (_url: string, init?: RequestInit): Promise<Response> => {
+      sink.headers = new Headers(init?.headers)
+      return new Response(JSON.stringify({ name: 'generated-key' }), { status: 200 })
+    }
+  }
+
+  type TestFetcher = (url: string, init?: RequestInit) => Promise<Response>
+
+  const operations: Array<{ name: string; run: (f: TestFetcher) => Promise<unknown> }> = [
+    { name: 'getData', run: (f) => getData('localhost', 9000, 'demo', '/a', f) },
+    { name: 'setData', run: (f) => setData('localhost', 9000, 'demo', '/a', { x: 1 }, f) },
+    { name: 'updateData', run: (f) => updateData('localhost', 9000, 'demo', '/a', { x: 1 }, f) },
+    { name: 'pushData', run: (f) => pushData('localhost', 9000, 'demo', '/a', { x: 1 }, f) },
+    { name: 'deleteData', run: (f) => deleteData('localhost', 9000, 'demo', '/a', f) },
+    { name: 'queryData', run: (f) => queryData('localhost', 9000, 'demo', '/a', {}, f) },
+    { name: 'seedData', run: (f) => seedData('localhost', 9000, 'demo', '/a', { x: 1 }, f) },
+    { name: 'exportData', run: (f) => exportData('localhost', 9000, 'demo', '/a', f) },
+  ]
+
+  for (const op of operations) {
+    it(`${op.name} sends the emulator admin credential`, async () => {
+      const sink: { headers?: Headers } = {}
+      await op.run(headerCapturingFetcher(sink))
+      expect(sink.headers?.get('Authorization')).toBe('Bearer owner')
+    })
+  }
+
+  it('does not put the credential in the URL, which the emulator rejects', async () => {
+    let captured = ''
+    const fetcher = async (url: string): Promise<Response> => {
+      captured = url
+      return new Response(JSON.stringify(null), { status: 200 })
+    }
+    await getData('localhost', 9000, 'demo', '/a', fetcher)
+    expect(captured).not.toContain('auth=')
+  })
+})

@@ -23,6 +23,22 @@ function storageBase(host: string, port: number): string {
   return `http://${host}:${port}`
 }
 
+/**
+ * Headers for Storage object operations.
+ *
+ * Data commands are local administration tools, so they talk to the emulator with
+ * admin credentials and are not subject to `storage.rules`. Without them the
+ * rules-enforced `/v0/b/...` surface used by list, download, and remove denies any
+ * bucket whose rules require authentication.
+ * Use `firetool rules check` to validate what your rules allow for a given identity.
+ */
+function storageHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return { Authorization: 'Bearer owner', ...extra }
+}
+
+const ADMIN_DENIED_HINT =
+  'Firetool data commands run with emulator admin credentials, so this usually means the emulator rejected them. Confirm you are targeting a local Storage Emulator.'
+
 /** Encode an object path for use in a URL segment (encode all except '/'). */
 function encodeObjectPath(objectPath: string): string {
   return objectPath
@@ -59,14 +75,14 @@ export async function listObjects(
   const url = `${base}/v0/b/${encodeURIComponent(bucket)}/o${params.size > 0 ? `?${params}` : ''}`
 
   try {
-    const res = await fetcher(url, { method: 'GET' })
+    const res = await fetcher(url, { method: 'GET', headers: storageHeaders() })
 
     if (res.status === 401 || res.status === 403) {
       return {
         error: {
           code: 'RULE_DENIED',
           message: `Storage Emulator denied the list operation on bucket "${bucket}".`,
-          hint: 'Check your storage.rules or use a service account that bypasses rules.',
+          hint: ADMIN_DENIED_HINT,
         },
       }
     }
@@ -112,7 +128,7 @@ export async function uploadObject(
   try {
     const res = await fetcher(url, {
       method: 'POST',
-      headers: { 'Content-Type': contentType },
+      headers: storageHeaders({ 'Content-Type': contentType }),
       body: content,
     })
 
@@ -121,7 +137,7 @@ export async function uploadObject(
         error: {
           code: 'RULE_DENIED',
           message: `Storage Emulator denied the upload to "${normalized}" in bucket "${bucket}".`,
-          hint: 'Check your storage.rules or use a service account that bypasses rules.',
+          hint: ADMIN_DENIED_HINT,
         },
       }
     }
@@ -161,14 +177,14 @@ export async function downloadObject(
   const url = `${base}/v0/b/${encodeURIComponent(bucket)}/o/${encoded}?alt=media`
 
   try {
-    const res = await fetcher(url, { method: 'GET' })
+    const res = await fetcher(url, { method: 'GET', headers: storageHeaders() })
 
     if (res.status === 401 || res.status === 403) {
       return {
         error: {
           code: 'RULE_DENIED',
           message: `Storage Emulator denied the download of "${normalized}" from bucket "${bucket}".`,
-          hint: 'Check your storage.rules or use a service account that bypasses rules.',
+          hint: ADMIN_DENIED_HINT,
         },
       }
     }
@@ -220,14 +236,14 @@ export async function removeObject(
   const url = `${base}/v0/b/${encodeURIComponent(bucket)}/o/${encoded}`
 
   try {
-    const res = await fetcher(url, { method: 'DELETE' })
+    const res = await fetcher(url, { method: 'DELETE', headers: storageHeaders() })
 
     if (res.status === 401 || res.status === 403) {
       return {
         error: {
           code: 'RULE_DENIED',
           message: `Storage Emulator denied the removal of "${normalized}" from bucket "${bucket}".`,
-          hint: 'Check your storage.rules or use a service account that bypasses rules.',
+          hint: ADMIN_DENIED_HINT,
         },
       }
     }

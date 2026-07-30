@@ -1,6 +1,7 @@
 import { router, publicProcedure } from '../trpc.ts'
 import { z } from 'zod'
 import { ServiceExecuteInputSchema } from '../../shared/schemas.ts'
+import { RTDB_ACTIONS } from '../../shared/actions.ts'
 import type { TFiretoolResult, TCommandTarget } from '../../shared/types.ts'
 import { discoverContext } from '../../discovery/index.ts'
 import { guardSensitiveOperation, assertConfirmed } from '../../policy/index.ts'
@@ -16,18 +17,7 @@ import {
 } from '../../adapters/rtdb/index.ts'
 import type { RtdbQueryFilter } from '../../adapters/rtdb/index.ts'
 
-const KNOWN_ACTIONS = [
-  'get',
-  'set',
-  'update',
-  'push',
-  'query',
-  'seed',
-  'import',
-  'export',
-  'delete',
-  'clear',
-] as const
+const KNOWN_ACTIONS = RTDB_ACTIONS
 
 type RtdbAction = (typeof KNOWN_ACTIONS)[number]
 

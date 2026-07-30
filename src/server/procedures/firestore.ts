@@ -1,6 +1,7 @@
 import { router, publicProcedure } from '../trpc.ts'
 import { z } from 'zod'
 import { ServiceExecuteInputSchema } from '../../shared/schemas.ts'
+import { FIRESTORE_ACTIONS } from '../../shared/actions.ts'
 import type { TFiretoolResult, TCommandTarget } from '../../shared/types.ts'
 import { discoverContext } from '../../discovery/index.ts'
 import { guardSensitiveOperation, assertConfirmed } from '../../policy/index.ts'
@@ -18,19 +19,7 @@ import {
 } from '../../adapters/firestore/index.ts'
 import type { QueryFilter, SeedDoc } from '../../adapters/firestore/index.ts'
 
-const KNOWN_ACTIONS = [
-  'get',
-  'set',
-  'update',
-  'query',
-  'list',
-  'seed',
-  'import',
-  'export',
-  'delete',
-  'delete-collection',
-  'clear',
-] as const
+const KNOWN_ACTIONS = FIRESTORE_ACTIONS
 
 type FirestoreAction = (typeof KNOWN_ACTIONS)[number]
 
