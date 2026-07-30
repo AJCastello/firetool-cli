@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-30
+
 ### Fixed
 
 - `firetool --version` now reports the installed version. It was hardcoded to `0.1.0` in the CLI entrypoint, so `0.1.1` identified itself as `0.1.0` — enough to make an agent or a script conclude that an upgrade had not taken effect. The version is now read from `package.json`, which resolves identically from the source and bundled entrypoints, so the two cannot drift again.
@@ -14,6 +16,10 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 - The GitHub release is now created only after npm publishing succeeds. The two ran in parallel, so a failed publish could leave a GitHub release advertising a version that never reached the registry.
 - `CONTRIBUTING.md` and `README.md` now describe the release process that actually exists. Both still instructed maintainers to publish with `npm publish` by hand or to configure an `NPM_TOKEN` secret; publishing moved to trusted publishing (OIDC), and a manual publish would now bypass the pipeline and produce a release without provenance. They also omitted that `main` is protected, so the version bump has to merge before the tag is created.
+
+### Added
+
+- The agent skill is now published to skills.sh, installable with `npx skills add AJCastello/firetool-cli`. `skill/` moved to `skills/` to match the discovery convention, and `SKILL.md` now tells agents to install the CLI binary separately before using it.
 
 ## [0.1.1] - 2026-07-30
 
