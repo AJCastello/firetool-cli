@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import { Command } from 'commander'
 import { createCaller } from '../server/caller.ts'
 import { formatResult } from './output.ts'
@@ -9,12 +10,21 @@ import { registerFunctionsCommands } from './functions.ts'
 import { registerPubSubCommands } from './pubsub.ts'
 import { registerRulesCommands } from './rules.ts'
 
+/**
+ * Read the version from package.json rather than hardcoding it.
+ *
+ * Both the source entrypoint (`src/cli/`) and the bundled one (`dist/cli/`) sit two
+ * levels below package.json, so the same relative path resolves in either context.
+ */
+const require = createRequire(import.meta.url)
+const { version } = require('../../package.json') as { version: string }
+
 const program = new Command()
 
 program
   .name('firetool')
   .description('Agent-first Firebase Emulator CLI — local-only, no Firebase real fallback')
-  .version('0.1.0')
+  .version(version)
   .option('--json', 'Output as structured JSON')
 
 program
