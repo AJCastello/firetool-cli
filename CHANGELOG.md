@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-30
+
 ### Changed
 
 - **BREAKING: Firetool now requires Node.js 22.12 or newer.** The previous floor of `>=20` covered a runtime that reached end of life in April 2026, and nothing verified it — the test suite runs under Bun, while the published CLI runs under Node. Users on Node 20 or 21 should stay on `0.1.2`, which contains every fix released so far.
