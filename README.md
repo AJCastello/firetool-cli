@@ -5,6 +5,7 @@
 [![Firebase Emulators](https://img.shields.io/badge/Firebase-Emulators-FFCA28?logo=firebase&logoColor=black)](https://firebase.google.com/docs/emulator-suite)
 [![Local only](https://img.shields.io/badge/safety-local--only-16a34a)](#local-only-by-design)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![skills.sh](https://skills.sh/b/AJCastello/firetool-cli)](https://skills.sh/AJCastello/firetool-cli)
 
 ![Firetool CLI](https://raw.githubusercontent.com/AJCastello/firetool-cli/main/firetool-cli.png)
 
@@ -54,7 +55,15 @@ Firetool turns those tasks into a stable CLI surface designed for both humans an
 
 ## Agent skill
 
-This repository includes a concise skill for AI agents at [`skill/firetool-cli/SKILL.md`](skill/firetool-cli/SKILL.md). It tells agents how to discover and use the CLI through `firetool --help`, `firetool help-info`, and JSON-first command execution instead of relying on copied command lists.
+This repository includes a concise skill for AI agents at [`skills/firetool-cli/SKILL.md`](skills/firetool-cli/SKILL.md). It tells agents how to discover and use the CLI through `firetool --help`, `firetool help-info`, and JSON-first command execution instead of relying on copied command lists.
+
+Install the skill into a supported agent with:
+
+```bash
+npx skills add AJCastello/firetool-cli
+```
+
+The skill teaches agents how to drive Firetool, but it does not install the Firetool CLI binary itself — install that separately as described in [Installation](#installation).
 
 ## Installation
 
