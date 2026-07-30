@@ -35,6 +35,14 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .studio/
 .vscode/
 
+# local AI agent assets — machine-local configuration, never tracked
+.claude/
+.opencode/
+.codex/
+.agents/
+AGENTS.md
+CLAUDE.md
+
 .github/skills/prd-template
 .github/skills/process-depth
 .github/skills/questioning
