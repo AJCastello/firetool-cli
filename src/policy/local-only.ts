@@ -1,5 +1,22 @@
 import type { TEmulatorStatus, TCommandTarget, TFiretoolError } from '../shared/types.ts'
 import { normalizeHost, classifyHostSync, readAllowlist } from './host-classification.ts'
+import { emulatorNameFor, startCommandForEmulatorNames } from '../shared/emulators.ts'
+
+/**
+ * Describe how to start the emulator that serves `service`.
+ *
+ * When the Firetool service name differs from the Firebase emulator name — `rtdb`
+ * is served by `database`, `rules` by `firestore` — the difference is stated, since
+ * passing the Firetool name to `--only` silently starts nothing.
+ */
+function startEmulatorHint(service: string): string {
+  const emulator = emulatorNameFor(service)
+  const command = startCommandForEmulatorNames([emulator])
+  if (emulator === service) {
+    return `Start it with "${command}" and retry.`
+  }
+  return `Start it with "${command}" and retry — the Firebase CLI calls the ${service} emulator "${emulator}".`
+}
 
 /**
  * Returns true when `host` is not a permitted local emulator address.
@@ -46,7 +63,7 @@ export function assertEmulatorRunning(
     return {
       code: 'SERVICE_NOT_CONFIGURED',
       message: `The ${service} emulator is not configured in this Firebase project.`,
-      hint: `Add the ${service} emulator to firebase.json or set the corresponding emulator host environment variable.`,
+      hint: `Add "${emulatorNameFor(service)}" to the emulators section of firebase.json, or set the corresponding emulator host environment variable.`,
     }
   }
 
@@ -63,7 +80,7 @@ export function assertEmulatorRunning(
     return {
       code: 'EMULATOR_NOT_RUNNING',
       message: `The ${service} emulator is configured but not running (${status.host ?? 'localhost'}:${status.port ?? '?'}).`,
-      hint: `Start the ${service} emulator with "firebase emulators:start --only ${service}" and retry.`,
+      hint: startEmulatorHint(service),
     }
   }
 

@@ -141,6 +141,48 @@ describe('Flow 1 — Discovery', () => {
     const hasRcWarning = result.warnings.some((w) => w.includes('.firebaserc'))
     expect(hasRcWarning).toBe(false)
   })
+
+  // doctor is step 1 of the documented agent flow, so it is where a caller
+  // learns the project is idle. Reporting that without the command to fix it
+  // leaves them to guess an invocation whose emulator names differ from
+  // Firetool's own service names.
+  describe('start suggestion', () => {
+    it('suggests a start command naming only emulators this project declares', async () => {
+      mockPortsClosed()
+      const result = await caller.diagnostics.getContext({ cwd: VALID_PROJECT })
+      const suggestion = result.warnings.find((w) => w.includes('emulators:start'))
+      expect(suggestion).toBeDefined()
+      expect(suggestion).toContain('No configured emulator is running.')
+      expect(suggestion).toContain(
+        'firebase emulators:start --only auth,database,firestore,functions,pubsub,storage',
+      )
+    })
+
+    it('never names rtdb or rules, which the Firebase CLI would reject', async () => {
+      mockPortsClosed()
+      const result = await caller.diagnostics.getContext({ cwd: VALID_PROJECT })
+      const suggestion = result.warnings.find((w) => w.includes('emulators:start'))!
+      const only = suggestion.split('--only ')[1]!
+      expect(only.split(',')).not.toContain('rtdb')
+      expect(only.split(',')).not.toContain('rules')
+    })
+
+    it('narrows the suggestion to what is still down when some are up', async () => {
+      mockPortsOpen([9099, 8080, 9199, 5001, 8085]) // everything except rtdb
+      const result = await caller.diagnostics.getContext({ cwd: VALID_PROJECT })
+      const suggestion = result.warnings.find((w) => w.includes('emulators:start'))
+      expect(suggestion).toContain('Configured but not running: rtdb.')
+      expect(suggestion).toContain('firebase emulators:start --only database')
+      mockPortsClosed()
+    })
+
+    it('stays quiet when every configured emulator is up', async () => {
+      mockPortsOpen([9099, 8080, 9000, 9199, 5001, 8085])
+      const result = await caller.diagnostics.getContext({ cwd: VALID_PROJECT })
+      expect(result.warnings.some((w) => w.includes('emulators:start'))).toBe(false)
+      mockPortsClosed()
+    })
+  })
 })
 
 // ---------------------------------------------------------------------------

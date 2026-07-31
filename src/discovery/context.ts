@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { net } from './net.ts'
 import type { TServiceName, TEmulatorStatus } from '../shared/types.ts'
+import { FIREBASE_EMULATOR_NAME } from '../shared/emulators.ts'
 
 /** Services that can run as emulators */
 const ALL_SERVICES: TServiceName[] = [
@@ -25,16 +26,13 @@ const DEFAULT_PORTS: Record<TServiceName, number> = {
   rules: 8080,
 }
 
-/** firebase.json emulators key names per service */
-const SERVICE_EMULATOR_KEY: Record<TServiceName, string> = {
-  auth: 'auth',
-  firestore: 'firestore',
-  rtdb: 'database',
-  storage: 'storage',
-  functions: 'functions',
-  pubsub: 'pubsub',
-  rules: 'firestore', // rules run in the firestore emulator
-}
+/**
+ * firebase.json emulators key names per service.
+ *
+ * Shared with the command builder so a suggested `firebase emulators:start`
+ * cannot name an emulator that discovery would not have looked for.
+ */
+const SERVICE_EMULATOR_KEY = FIREBASE_EMULATOR_NAME
 
 /** Environment variable names per service (host and port) */
 const ENV_VARS: Record<TServiceName, { host: string; port: string } | null> = {
