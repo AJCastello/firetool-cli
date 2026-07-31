@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "firetool-cli": {
+      "source": "AJCastello/firetool-cli",
+      "sourceType": "github",
+      "skillPath": "skills/firetool-cli/SKILL.md",
+      "computedHash": "dce27482d1382a55432ec4680b89f878402d92bf36fb585774418150ddcc13f7"
+    }
+  }
+}
