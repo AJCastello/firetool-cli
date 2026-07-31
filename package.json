@@ -1,6 +1,6 @@
 {
   "name": "firetool-cli",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Agent-first, local-only CLI for controlling Firebase emulators safely from terminals and automation.",
   "type": "module",
   "license": "MIT",

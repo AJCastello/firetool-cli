@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-31
+
 ### Fixed
 
 - Error hints no longer suggest a `firebase emulators:start` command that starts nothing. When the Realtime Database emulator was down, `firetool rtdb <method>` suggested `firebase emulators:start --only rtdb`; `rtdb` is not a name the Firebase CLI accepts, so the command exits with "No emulators to start, run firebase init emulators to get started" — on a project that does declare the emulator. The suggestion now names the emulator the Firebase CLI actually serves the service from (`database` for `rtdb`, `firestore` for `rules`) and says so explicitly, so the rename does not read as a typo. This class of error is worse than a wrong result: the hint is copied and run verbatim by agents and scripts, and its failure mode points the caller at their own configuration.
