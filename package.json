@@ -16,11 +16,17 @@
   "keywords": [
     "firebase",
     "firebase-emulator",
+    "emulator-suite",
+    "firestore",
+    "firebase-auth",
+    "realtime-database",
+    "seed",
     "cli",
     "developer-tools",
     "testing",
     "automation",
     "agents",
+    "ai-agents",
     "typescript"
   ],
   "bin": {
@@ -50,6 +56,7 @@
     "typecheck": "tsc --noEmit",
     "check": "bun run typecheck && bun test",
     "check-types": "tsc --noEmit",
+    "check-types:scope": "tsc --noEmit",
     "validate:scope": "bun run typecheck && bun test"
   },
   "devDependencies": {

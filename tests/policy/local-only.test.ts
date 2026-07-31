@@ -100,6 +100,52 @@ describe('assertEmulatorRunning', () => {
   })
 })
 
+// The hint is a command the caller — often an agent — runs verbatim. Naming a
+// Firetool service where the Firebase CLI expects an emulator name produces
+// "No emulators to start", which reads as a misconfigured project rather than a
+// bad suggestion. These assert the suggestion is actually runnable.
+describe('assertEmulatorRunning — suggested start command', () => {
+  it('suggests the database emulator for rtdb, not the Firetool name', () => {
+    const err = assertEmulatorRunning('rtdb', [
+      makeStatus('rtdb', { running: false, port: 9000 }),
+    ])
+    expect(err!.code).toBe('EMULATOR_NOT_RUNNING')
+    expect(err!.hint).toContain('firebase emulators:start --only database')
+    expect(err!.hint).not.toContain('--only rtdb')
+  })
+
+  it('explains the rename so the difference is not read as a typo', () => {
+    const err = assertEmulatorRunning('rtdb', [makeStatus('rtdb', { running: false })])
+    expect(err!.hint).toContain('the Firebase CLI calls the rtdb emulator "database"')
+  })
+
+  it('suggests the plain service name when the two already agree', () => {
+    const err = assertEmulatorRunning('firestore', [
+      makeStatus('firestore', { running: false }),
+    ])
+    expect(err!.hint).toContain('firebase emulators:start --only firestore')
+    expect(err!.hint).not.toContain('the Firebase CLI calls')
+  })
+
+  it('names the firebase.json key to add when a service is not configured', () => {
+    const err = assertEmulatorRunning('rtdb', [
+      makeStatus('rtdb', { configured: false }),
+    ])
+    expect(err!.code).toBe('SERVICE_NOT_CONFIGURED')
+    expect(err!.hint).toContain('"database"')
+  })
+
+  it('degrades to the given name for a service outside the known set', () => {
+    const err = assertEmulatorRunning('hosting', [
+      makeStatus('auth' as TEmulatorStatus['service'], {
+        service: 'hosting' as TEmulatorStatus['service'],
+        running: false,
+      }),
+    ])
+    expect(err!.hint).toContain('firebase emulators:start --only hosting')
+  })
+})
+
 describe('assertUnambiguousTarget', () => {
   it('returns null when target carries explicit projectId', () => {
     const target: TCommandTarget = { service: 'firestore', projectId: 'my-project' }

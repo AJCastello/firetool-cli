@@ -6,6 +6,23 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ## [Unreleased]
 
+### Fixed
+
+- Error hints no longer suggest a `firebase emulators:start` command that starts nothing. When the Realtime Database emulator was down, `firetool rtdb <method>` suggested `firebase emulators:start --only rtdb`; `rtdb` is not a name the Firebase CLI accepts, so the command exits with "No emulators to start, run firebase init emulators to get started" — on a project that does declare the emulator. The suggestion now names the emulator the Firebase CLI actually serves the service from (`database` for `rtdb`, `firestore` for `rules`) and says so explicitly, so the rename does not read as a typo. This class of error is worse than a wrong result: the hint is copied and run verbatim by agents and scripts, and its failure mode points the caller at their own configuration.
+- `SERVICE_NOT_CONFIGURED` now names the key to add to the `emulators` section of `firebase.json`, which for `rtdb` is `database` rather than the Firetool service name.
+
+### Added
+
+- `firetool doctor` now reports how to start the emulators that are configured but down, deriving the command from what discovery actually found: `No configured emulator is running. Start them with: firebase emulators:start --only auth,database,firestore`. When only some are down it narrows to those. `doctor` is step 1 of the documented agent flow and therefore where a caller learns the project is idle; stopping at the diagnosis left them to construct an invocation whose emulator names do not all match Firetool's service names. The suggestion is emitted as a warning, so the `result` payload keeps its shape.
+- `src/shared/emulators.ts` as the single source of truth for the Firetool service → Firebase emulator mapping, shared by discovery, policy hints, and `doctor`. Tests assert that every name it can emit appears in the set `firebase emulators:start --only` accepts, so a service added with an invented name fails in CI instead of in a user's terminal.
+- `check-types:scope` script, which automated review tooling invokes and this package did not define.
+
+### Changed
+
+- README leads with `npx firetool-cli doctor` so the tool can be tried without a global install, documents `0.1.2` as the fallback for Node 20 and 21, and explains why the floor moved.
+- SECURITY.md now points at GitHub Security Advisories, which has been enabled for the repository. It previously offered "GitHub Security Advisories, if enabled" and "a private direct contact with the maintainer" without an address — between them, no working private channel existed. It also states that `0.1.2` is a compatibility fallback receiving no fixes, rather than leaving the README's recommendation to imply otherwise.
+- npm keywords expanded and GitHub repository topics set; the repository previously had none.
+
 ## [0.2.0] - 2026-07-30
 
 ### Changed

@@ -2,21 +2,24 @@
 
 ## Supported versions
 
-Firetool CLI is currently in its early public release phase. Security fixes are applied to the latest published release line.
+Firetool CLI is currently in its early public release phase. Security fixes are applied to the latest published release line only.
 
 | Version | Supported |
 | --- | --- |
-| latest | yes |
-| older releases | no |
+| `0.2.x` | yes |
+| `0.1.x` | no |
+
+`README.md` points users still on Node 20 or 21 at `0.1.2`, since `0.2.0` raised the runtime floor. That is a compatibility fallback, not a supported line: it receives no fixes, including security fixes. Upgrading Node is the only path that stays supported.
 
 ## Reporting a vulnerability
 
 Please do not open public GitHub issues for suspected security vulnerabilities.
 
-Instead, report them privately through one of these channels:
+Report privately through GitHub Security Advisories, which is enabled for this repository:
 
-- GitHub Security Advisories for this repository, if enabled;
-- a private direct contact with the maintainer.
+**https://github.com/AJCastello/firetool-cli/security/advisories/new**
+
+That is the only private channel; there is no separate security mailing address.
 
 Include:
 
