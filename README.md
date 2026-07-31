@@ -36,7 +36,7 @@ Firetool turns those tasks into a stable CLI surface designed for both humans an
 - **Agent-friendly output**: every command can emit structured JSON with `--json`.
 - **Predictable failures**: error categories map to distinct exit codes for shell scripts and AI agents.
 - **Destructive-operation guardrails**: dangerous operations require `--force`; many support `--dry-run`.
-- **Firebase context discovery**: `firetool doctor` inspects `firebase.json`, `.firebaserc`, emulator environment variables, and running ports.
+- **Firebase context discovery**: `firetool doctor` inspects `firebase.json`, `.firebaserc`, emulator environment variables, and running ports — and when emulators are down, it prints the exact `firebase emulators:start` command for the ones this project declares.
 - **Multi-service coverage**: Auth, Firestore, Realtime Database, Storage, Functions, Pub/Sub, and security rules.
 - **Typed internals**: built with TypeScript, Zod schemas, and a tRPC-style internal router.
 
@@ -67,20 +67,31 @@ The skill teaches agents how to drive Firetool, but it does not install the Fire
 
 ## Installation
 
-Firetool requires **Node.js 22.12 or newer**. That floor is not a guess: CI installs exactly that version, builds the CLI, and runs it, so the compatibility claim is exercised on every change rather than asserted.
+Try it without installing anything, from inside a Firebase project using the Emulator Suite:
 
-Install Firetool globally:
+```bash
+npx firetool-cli doctor
+npx firetool-cli doctor --json
+```
+
+Install it globally once you want the `firetool` binary on your path:
 
 ```bash
 npm install -g firetool-cli
-```
-
-Then run it inside a Firebase project using the Emulator Suite:
-
-```bash
-firetool doctor
 firetool doctor --json
 ```
+
+### Supported Node versions
+
+Firetool requires **Node.js 22.12 or newer**. That floor is not a guess: CI installs exactly that version, builds the CLI, and runs it, so the compatibility claim is exercised on every change rather than asserted.
+
+If you are still on Node 20 or 21, install `0.1.2` instead — it declares `node >=20` and contains every fix released before the floor was raised:
+
+```bash
+npm install -g firetool-cli@0.1.2
+```
+
+The `0.2.0` release raised the floor because `commander` 15 requires it. Runtime dependencies are not bundled, so a dependency's own floor becomes Firetool's floor on the installing machine.
 
 Published packages include only the built CLI bundle plus the public package files:
 
@@ -112,17 +123,17 @@ If you want to contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md). For se
 
 ## Quick start
 
-Start Firebase emulators in your project:
-
-```bash
-firebase emulators:start
-```
-
-Diagnose the local context:
+Diagnose the local context first — this works whether or not the emulators are up, and tells you what to start if they are not:
 
 ```bash
 firetool doctor --json
 ```
+
+```text
+⚠ No configured emulator is running. Start with: firebase emulators:start --only auth,database,firestore
+```
+
+Run that command, then start operating. Note that the Firebase CLI names its Realtime Database emulator `database` while Firetool calls the service `rtdb`; `doctor` always emits the name the Firebase CLI accepts.
 
 Create a local Auth user:
 
@@ -174,7 +185,7 @@ firetool rules check \
 
 | Area | Command | What to use it for | Useful flags |
 | --- | --- | --- | --- |
-| Diagnostics | `firetool doctor` | Check whether Firetool found a Firebase project and which emulators are configured/running. | `--json` |
+| Diagnostics | `firetool doctor` | Check whether Firetool found a Firebase project and which emulators are configured/running, and get the command to start the ones that are down. | `--json` |
 | Discovery | `firetool help-info [service]` | Print the agent-first usage guide, service catalog, and error model. | `--json` |
 | Auth | `firetool auth <method>` | Manage local Auth emulator users for tests, demos, and repeatable local setup. | `--json`, `--force` |
 | Firestore | `firetool firestore <method>` | Inspect, mutate, seed, import/export, and clear local Firestore data. | `--json`, `--dry-run`, `--force`, `--file`, `--data` |
