@@ -171,8 +171,24 @@ describe('Flow 1 — Discovery', () => {
       mockPortsOpen([9099, 8080, 9199, 5001, 8085]) // everything except rtdb
       const result = await caller.diagnostics.getContext({ cwd: VALID_PROJECT })
       const suggestion = result.warnings.find((w) => w.includes('emulators:start'))
-      expect(suggestion).toContain('Configured but not running: rtdb.')
+      expect(suggestion).toContain('Some configured emulators are not running.')
       expect(suggestion).toContain('firebase emulators:start --only database')
+      mockPortsClosed()
+    })
+
+    it('lets the command be the list rather than naming services beside it', async () => {
+      // `rules` is served by the firestore emulator, so it is down whenever
+      // firestore is, but it can never appear in --only. Naming it next to the
+      // command would read as a command missing an emulator.
+      mockPortsOpen([9099]) // auth only; firestore and therefore rules are down
+      const result = await caller.diagnostics.getContext({ cwd: VALID_PROJECT })
+      const suggestion = result.warnings.find((w) => w.includes('emulators:start'))!
+      expect(suggestion).toBe(
+        'Some configured emulators are not running. Start them with: ' +
+          'firebase emulators:start --only database,firestore,functions,pubsub,storage',
+      )
+      expect(suggestion).not.toContain('rules')
+      expect(suggestion).not.toContain('rtdb')
       mockPortsClosed()
     })
 

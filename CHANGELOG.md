@@ -13,7 +13,7 @@ The format is based on Keep a Changelog, and version numbers follow Semantic Ver
 
 ### Added
 
-- `firetool doctor` now reports how to start the emulators that are configured but down, deriving the command from what discovery actually found: `No configured emulator is running. Start with: firebase emulators:start --only auth,database,firestore`. When only some are down it narrows to those. `doctor` is step 1 of the documented agent flow and therefore where a caller learns the project is idle; stopping at the diagnosis left them to construct an invocation whose emulator names do not all match Firetool's service names. The suggestion is emitted as a warning, so the `result` payload keeps its shape.
+- `firetool doctor` now reports how to start the emulators that are configured but down, deriving the command from what discovery actually found: `No configured emulator is running. Start them with: firebase emulators:start --only auth,database,firestore`. When only some are down it narrows to those. `doctor` is step 1 of the documented agent flow and therefore where a caller learns the project is idle; stopping at the diagnosis left them to construct an invocation whose emulator names do not all match Firetool's service names. The suggestion is emitted as a warning, so the `result` payload keeps its shape.
 - `src/shared/emulators.ts` as the single source of truth for the Firetool service → Firebase emulator mapping, shared by discovery, policy hints, and `doctor`. Tests assert that every name it can emit appears in the set `firebase emulators:start --only` accepts, so a service added with an invented name fails in CI instead of in a user's terminal.
 - `check-types:scope` script, which automated review tooling invokes and this package did not define.
 

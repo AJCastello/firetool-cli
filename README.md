@@ -130,7 +130,7 @@ firetool doctor --json
 ```
 
 ```text
-⚠ No configured emulator is running. Start with: firebase emulators:start --only auth,database,firestore
+⚠ No configured emulator is running. Start them with: firebase emulators:start --only auth,database,firestore
 ```
 
 Run that command, then start operating. Note that the Firebase CLI names its Realtime Database emulator `database` while Firetool calls the service `rtdb`; `doctor` always emits the name the Firebase CLI accepts.

@@ -21,13 +21,16 @@ function buildStartSuggestion(statuses: TEmulatorStatus[]): string | null {
   const down = statuses.filter((status) => status.configured && !status.running)
   if (down.length === 0) return null
 
-  const services = down.map((status) => status.service)
+  // The command is the authoritative list. Naming the Firetool services alongside
+  // it would contradict it: `rules` is served by the firestore emulator and has
+  // none of its own, so it belongs in a "not running" list but never in --only,
+  // and the discrepancy reads as a command missing an emulator.
   const anyRunning = statuses.some((status) => status.configured && status.running)
   const subject = anyRunning
-    ? `Configured but not running: ${services.join(', ')}.`
+    ? 'Some configured emulators are not running.'
     : 'No configured emulator is running.'
 
-  return `${subject} Start with: ${buildEmulatorStartCommand(services)}`
+  return `${subject} Start them with: ${buildEmulatorStartCommand(down.map((s) => s.service))}`
 }
 
 export const diagnosticsRouter = router({
